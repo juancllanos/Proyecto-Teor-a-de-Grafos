@@ -1,0 +1,46 @@
+    def distancia(self,u,v):
+        if (u in self.vertex) and (v in self.vertex):
+            N_u = []
+            N_v = []
+            for i in self.vertex:
+                if (u,i) in self.edges or (i,u) in self.edges:
+                    N_u.append(i)
+            for i in self.vertex:
+                if (v,i) in self.edges or (i,v) in self.edges:
+                    N_v.append(i)
+            if (len(N_u) == 0 or len(N_v) == 0):
+                return -1
+            
+            else:
+                s = set()
+                r = set(u)
+                g = set(self.vertex)
+                g.remove(u)
+                distance = {}
+                distance[u] = 0
+                while (len(r) != 0):
+                    r_temp = r
+                    for i in r_temp:
+                        if i in r:
+                            N = set()
+                            print "VALOR i: ",i
+                            if i == v:
+                                return distance[i]
+                            for j in self.vertex:
+                                if j in g:
+                                    print "Valor de j: ",j
+                                    if (i,j) in self.edges or (j,i) in self.edges:
+                                        N.add(j)
+                                        g.remove(j)
+                                        distance[j] = distance[i]+1
+                                    else:
+                                        distance[j] = -1
+                                    print "Valor distancia J: ",distance[j]
+                                    print distance
+                            print "------------>Conjunto N: ",N
+                            r = r.union(N)
+                            r.remove(i)
+                            s.add(i)
+                return distance[v]
+        else:
+            return "Error"
