@@ -1,3 +1,58 @@
+import itertools
+
+
+class Graph(object):
+    
+    def __init__(self,vertex,edges):
+        v = True
+        for i in edges:
+            for j in i:
+                if j in vertex:
+                    v = v and True
+                else :
+                    v = v and False
+        if v == False:
+            print ("Error")
+        else:
+            self.vertex = vertex
+            self.edges = edges
+
+            
+    def AdjacencyMatrix(self):
+        AM = []
+        for i in self.vertex:
+            A = []
+            print ("i =",i)
+            for j in self.vertex:
+                print ("j =" , j)
+                if (i,j) in self.edges or (j,i) in self.edges:
+                    A.append(1)
+                else:
+                    A.append(0)
+            print (A)
+            AM.append(A)
+        return AM
+            
+
+
+    def isIsomorphTo(self,H):
+        if len(self.edges) == len(H.edges) and len(self.vertex) == len(H.vertex):
+            AM = self.AdjacencyMatrix()
+            P = itertools.permutations(H.vertex)
+            PL = []
+            for i in P:
+                PL.append(list(i))
+            for j in PL:
+                G = Graph(j,H.edges)
+                AMG = G.AdjacencyMatrix()
+                if AM == AMG:
+                    return True
+            return False
+            
+        else:
+            return False
+    
+    
     def distancia(self,u,v):
         if (u in self.vertex) and (v in self.vertex):
             N_u = []
@@ -23,24 +78,72 @@
                     for i in r_temp:
                         if i in r:
                             N = set()
-                            print "VALOR i: ",i
                             if i == v:
                                 return distance[i]
                             for j in self.vertex:
                                 if j in g:
-                                    print "Valor de j: ",j
                                     if (i,j) in self.edges or (j,i) in self.edges:
                                         N.add(j)
                                         g.remove(j)
                                         distance[j] = distance[i]+1
                                     else:
                                         distance[j] = -1
-                                    print "Valor distancia J: ",distance[j]
-                                    print distance
-                            print "------------>Conjunto N: ",N
                             r = r.union(N)
                             r.remove(i)
                             s.add(i)
                 return distance[v]
         else:
             return "Error"
+        
+    
+    
+    def diametro(self):
+        P = set(itertools.combinations(self.vertex,2))
+        max = 0
+        for i in P:
+            valor = self.distancia(i[0],i[1])
+            if(valor == -1):
+                return -1
+            elif(valor>max):
+                max = valor
+        return max 
+            
+            
+    def excentricidad(self,n):
+        valor = 0
+        for i in self.vertex:
+            dis = self.distancia(n, i)
+            if(dis==-1):
+                return -1
+            elif(dis>valor):
+                valor = dis
+        return valor
+    
+    def radio(self):
+        min = len(self.vertex)
+        for i in self.vertex:
+            valor = self.excentricidad(i)
+            if(valor== -1):
+                return -1
+            elif(valor<min):
+                min = valor
+        return min
+    
+    
+    def conectado(self):
+        P = set(itertools.combinations(self.vertex,2))
+        for i in P:
+            valor = self.distancia(i[0],i[1])
+            if(valor == -1):
+                return False
+            else:
+                return True
+            
+            
+    def esArbol(self):
+        if(len(self.edges)==len(self.vertex)-1 and self.conectado()==True):
+            return True;
+        else:
+            return False
+        
+        
