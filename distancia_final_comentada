@@ -1,0 +1,61 @@
+    def distancia(self,u,v):
+        if (u in self.vertex) and (v in self.vertex):
+            N_u = []
+            N_v = []
+            for i in self.vertex:
+                if (u,i) in self.edges or (i,u) in self.edges:
+                    N_u.append(i)
+            for i in self.vertex:
+                if (v,i) in self.edges or (i,v) in self.edges:
+                    N_v.append(i)
+            if (len(N_u) == 0 or len(N_v) == 0):
+                return -1
+            if u == v:
+                return 0
+            # En esta ejecución revisamos si los dos nodos estan en el grafo y ademas si estan
+            # desconectados o si son el mismo, en caso de que alguno de los dos esté desconectado
+            # retorna -1 y son el mismo nodo retorna 0.
+            
+            else:
+                s = set()
+                r = set(u)
+                g = set(self.vertex)
+                g.remove(u)
+                distance = {}
+                distance[u] = 0
+            # Inicializamos 's' (nodos ya visitados), 'r' (nodos por visitar) , 'g' (nodos que no estan ni en r ni en s) y
+            # un diccionario 'distance' en el cual vamos guardando la distancia de u a cada nodo.
+                while (len(r) != 0):
+                    r_temp = r
+                    # Creamos un r temporal para poder ejecutar el for sobre 'r'.
+                    for i in r_temp:
+                        if i in r:
+                            N = set()
+                    # 'N' es el conjunto de los vecinos.
+                            if i == v:
+                                return distance[i]
+                    # En el caso de que 'v' ya lo hayamos visitado significa que ya sabemos su distancia
+                    # por lo tanto la retornamos sin necesidad de ejecutar todo el algoritmo.
+                            for j in self.vertex:
+                                if j in g:
+                                    if (i,j) in self.edges or (j,i) in self.edges:
+                                        N.add(j)
+                                        g.remove(j)
+                                        distance[j] = distance[i]+1
+                    # En este paso revisamos los nodos que estan en 'g' y vemos si son vecinos del nodo que estamos
+                    # evaluando, si es se agrega a los vecino, se quita de 'g' y se agrega su distancia al diccionario
+                    # sumandole uno a la distancia del nodo que estamos evaluando.
+                                    else:
+                                        distance[j] = -1
+                    # De lo contrario quiere decir que desde el nodo que estamos evaluando no podemos llegar a 'j'
+                    # todavia por lo tanto su distancia es -1 (infinito).
+                            r = r.union(N)
+                            r.remove(i)
+                            s.add(i)
+                    # Cuando salimos del for a 'r' le agregamos los vecinos, los nodos que vamos a visitar,
+                    # quitamos el nodo que ya evaluamos y lo agregamos a 's'.
+                return distance[v]
+            # Cuando ya visitamos todos los nodos posibles retornamos la distancia de 'v'.
+        else:
+            return "Error"
+        # Si alguno de los nodos no esta en el conjunto de los vertices entonces retorna error.
