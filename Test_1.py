@@ -1,8 +1,9 @@
-from Isomorph import Graph
+from p2 import Graph
 import itertools
 
 vertex1 = ["a","b","c","d"]
 edges1 = [("a","b"),("b","c"),("d","c"),("a","d")]
+#edges1 = [("a","a"),("b","c"),("d","c")]
 
 G1 = Graph(vertex1,edges1)
 
@@ -24,6 +25,8 @@ G2 = Graph(vertex2,edges2)
 #print G1.isIsomorphTo(G2)
 
 print G1.isIsomorphTo(G2)
+print G1.gradoNodo("a")
+print G1.esEuleriano()
 
 
 
