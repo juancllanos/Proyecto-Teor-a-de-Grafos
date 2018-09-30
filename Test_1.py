@@ -1,9 +1,8 @@
-from p2 import Graph
+from proyecto import Graph
 import itertools
 
 vertex1 = ["a","b","c","d"]
 edges1 = [("a","b"),("b","c"),("d","c"),("a","d")]
-#edges1 = [("a","a"),("b","c"),("d","c")]
 
 G1 = Graph(vertex1,edges1)
 
@@ -12,21 +11,19 @@ edges2 = [("f","g"),("g","h"),("i","h"),("f","i")]
 
 G2 = Graph(vertex2,edges2)
 
-#print "Vertex :"
-#for i in G1.vertex :
-#    print i
-#print "------------------"
-#print "Edges :"
-#for j in G1.edges:
-#    print j
+vertex3 = ['a','b','c','d','e','f']
+edges3 = [('a','b'),('a','f'),('b','c'),('b','e'),('c','d'),('c','f'),
+          ('d','e'),('f','e')]
 
-#print G1.AdjacencyMatrix()
-#print G2.AdjacencyMatrix()
-#print G1.isIsomorphTo(G2)
+G3 = Graph(vertex3,edges3)
 
-print G1.isIsomorphTo(G2)
-print G1.gradoNodo("a")
-print G1.esEuleriano()
+print G3.distancia('a','d')
+print G3.diametro()
+print G3.excentricidad('a')
+print G3.radio()
+print G3.conectado()
+print G3.esArbol()
+print G3.esEuleriano()
 
 
 
