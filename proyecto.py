@@ -151,7 +151,6 @@ class Graph(object):
         #Evalua la excentricidad de todos los nodos del grafo
         for i in self.vertex:
             valor = self.excentricidad(i)
-            print "------>radio:",valor
             #Si la distancia es infinita retorna -1
             if(valor== -1):
                 return -1
@@ -177,8 +176,13 @@ class Graph(object):
             
             
     def esArbol(self):
+        lados = self.edges
+        for i in range(1,len(self.edges)-1):
+            valor = lados[len(lados)-i]
+            if((valor[1],valor[0]) in lados):
+                lados.pop(lados.index((valor[1],valor[0])))
         #Evalua si la longitud de los lados es igual a la de los nodos-1, y si está conectado
-        if(len(self.edges)==len(self.vertex)-1 and self.conectado()==True):
+        if(len(lados)==len(self.vertex)-1 and self.conectado()==True):
             return True;
         else:
             return False
@@ -212,3 +216,115 @@ class Graph(object):
             valor = False
         #Si el grado de todos los nodos es par y está conectado estnonces es euleriano
         return valor
+
+    def vecindario(self,nodo):
+        vecinos = []
+        for i in self.edges:
+            if(nodo == i[0]):
+                vecinos.append(i[1])
+            elif(nodo == i[1]):
+                vecinos.append(i[0])
+        return vecinos
+
+
+    def esBipartito(self):
+        if(self.esArbol()==True):
+            return True
+        else:
+            grafo = self.Biparticion()
+            if(len(set(grafo[0])& set(grafo[1]))!=0):
+                return False
+            else:
+                return True
+
+    def Biparticion(self):
+        x = []
+        y = []
+        for i in self.vertex:
+            if(not(i in x) and (i in y)):
+                x = x + self.vecindario(i)
+            elif(not(i in y) and (i in x)):
+                y = y + self.vecindario(i)
+            else:
+                x.append(i)
+                y = y + self.vecindario(i)
+        return [list(set(x)),list(set(y))]
+        
+
+    def findCA(self,grafo,emp,S,T):
+        print "----------------->Conj. INICIAL S: ",S
+        print "----------------->Conj. INICIAL T: ",T
+        if(len(S)==0):
+            print "S ESTA VACIO"
+            cubrimiento = (set(T) | (set(grafo[0])-set(S)))
+            return [cubrimiento,emp]
+        else:
+            for i in S:
+                print "--------->PRIMER VALOR DE S: ",i
+                for j in self.vecindario(i):
+                    print "----------------->PRIMER VALOR DE J: ",j
+                    Jsaturado = False
+                    for k in emp:
+                        if(j in k):
+                            Jsaturado = True
+                    print "----------------->J ESTA SATURADO?: ",Jsaturado
+                    if((not((i,j) in emp) or not((j,i) in emp)) and Jsaturado==False):
+                        print "----------------->SE ENCONTRO CAMINO AUMENTADOR EN : (%r,%r)" %(i,j)
+                        emp.append((i,j))
+                        print "########################################################################################################"
+                        S = []
+                        for mp in grafo[0]:
+                            esta = False
+                            for hi in emp:
+                                if(mp in hi):
+                                    esta = True
+                            if(esta==False):
+                                S.append(mp)
+                        return self.findCA(grafo,emp,S,[])
+                    else:
+                        print "Emparejamiento: ",emp
+                        T = T+[j]
+                        w = 0
+                        for p in emp:
+                            print "Valor de p: ",p
+                            if(j == p[0]):
+                                w = p[1]
+                                break
+                            elif(j== p[1]):
+                                w = p[0]
+                                break
+                        print "Valor w: ",w
+                        S = S+[w]
+                        print "----------------->Conj. S: ",S
+                        print "----------------->Conj. T: ",T
+                S.pop(index(i))
+        
+                
+                        
+
+        
+    def caminoAumentador(self):
+        if(self.esBipartito==False):
+            return "Error"
+        else:
+            grafo = self.Biparticion()
+            return self.findCA(grafo,[],self.Biparticion()[0],[])
+        
+        
+        
+        
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        

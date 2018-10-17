@@ -17,13 +17,21 @@ edges3 = [('a','b'),('a','f'),('b','c'),('b','e'),('c','d'),('c','f'),
 
 G3 = Graph(vertex3,edges3)
 
-print G3.distancia('a','d')
-print G3.diametro()
-print G3.excentricidad('a')
-print G3.radio()
-print G3.conectado()
-print G3.esArbol()
-print G3.esEuleriano()
+vertex4 = ['a','b','c','d']
+edges4 = [('a','b'),('a','c'),('a','d')]
+
+G4 = Graph(vertex4,edges4)
+
+##print G3.distancia('a','d')
+##print G3.diametro()
+##print G3.excentricidad('a')
+##print G3.radio()
+##print G3.conectado()
+##print G3.esArbol()
+##print G3.esEuleriano()
+##print G4.esBipartito()
+##print G4.Biparticion()
+print G4.caminoAumentador()
 
 
 
