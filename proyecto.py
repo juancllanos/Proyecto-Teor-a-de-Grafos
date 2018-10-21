@@ -1,5 +1,7 @@
 # -*- coding: cp1252 -*-
 import itertools
+from collections import OrderedDict
+from copy import deepcopy
 
 
 class Graph(object):
@@ -248,13 +250,13 @@ class Graph(object):
             else:
                 x.append(i)
                 y = y + self.vecindario(i)
-        return [list(set(x)),list(set(y))]
+        return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
         
 
-    def findCA(self,grafo,emp,S,T):
+    def findCA(self,grafo,emp,S,T,final):
         print "----------------->Conj. INICIAL S: ",S
         print "----------------->Conj. INICIAL T: ",T
-        if(len(S)==0):
+        if(len(S)==0 or final==True):
             print "S ESTA VACIO"
             cubrimiento = (set(T) | (set(grafo[0])-set(S)))
             return [cubrimiento,emp]
@@ -280,7 +282,7 @@ class Graph(object):
                                     esta = True
                             if(esta==False):
                                 S.append(mp)
-                        return self.findCA(grafo,emp,S,[])
+                        return self.findCA(grafo,emp,S,[],False)
                     else:
                         print "Emparejamiento: ",emp
                         T = T+[j]
@@ -294,10 +296,12 @@ class Graph(object):
                                 w = p[0]
                                 break
                         print "Valor w: ",w
-                        S = S+[w]
+                        if(not(w in S)):
+                            S = S+[w]
                         print "----------------->Conj. S: ",S
                         print "----------------->Conj. T: ",T
-                S.pop(index(i))
+                #S.pop(S.index(i))
+            return self.findCA(grafo,emp,S,T,True)
         
                 
                         
@@ -308,7 +312,196 @@ class Graph(object):
             return "Error"
         else:
             grafo = self.Biparticion()
-            return self.findCA(grafo,[],self.Biparticion()[0],[])
+            return self.findCA(grafo,[],grafo[0],[],False)
+
+
+########################################################################################################################################################
+class WeightedGraph(object):
+
+        def __init__(self,vertex,edges):
+            self.vertex = vertex
+            self.edges = edges
+
+
+        def WeightMatrix(self):
+            matrix = []
+            for i in self.vertex:
+                temp = []
+                for j in self.vertex:
+                    var = False
+                    for k in self.edges:
+                        if((i,j) in k or (j,i) in k):
+                            temp.append(k[1])
+                            var = var or True
+                        else:
+                            var =var or False
+                    if var == False:
+                        if(i==j):
+                            temp.append(0)
+                        else:
+                            temp.append(-1)
+                matrix.append(temp)
+            return matrix
+        
+
+        def vecindario(self,nodo):
+            vecinos = []
+            for i in self.edges:
+                if(nodo == i[0][0]):
+                    vecinos.append(i[0][1])
+                elif(nodo == i[0][1]):
+                    vecinos.append(i[0][0])
+            return vecinos
+
+
+        def esBipartito(self):
+            grafo = self.Biparticion()
+            if(len(set(grafo[0])& set(grafo[1]))!=0):
+                return False
+            else:
+                return True
+
+
+        def Biparticion(self):
+            x = []
+            y = []
+            for i in self.vertex:
+                if(not(i in x) and (i in y)):
+                    x = x + self.vecindario(i)
+                elif(not(i in y) and (i in x)):
+                    y = y + self.vecindario(i)
+                else:
+                    x.append(i)
+                    y = y + self.vecindario(i)
+            return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
+        
+        
+
+        def IAH(self,bipa,matriz,emp,puntX,puntY):
+            if(len(emp)==len(bipa[0])):
+                return emp
+            else:
+                lados = []
+                for j in range(len(puntX)):
+                    for h in range(len(puntY)): 
+                        suma = puntX[j]+puntY[h]
+                        print "SUMA VITALMENTE IMPORTANTE: (%r+%r)= %r, (%r)" %(puntX[j],puntY[h],suma,matriz[j][h])
+                        if(suma==matriz[j][h]):
+                            print "Entrada"
+                            lados.append((self.vertex[j],self.vertex[h+len(bipa[0])]))
+
+                
+
+                print "SUPER IMPORTANTE LADOS: ",lados
+                Nvertex = []
+                for i in self.vertex:
+                    for j in lados:
+                        if(i in j):
+                            Nvertex.append(i)
+                print "--->Nuevos vertices: ",list(OrderedDict.fromkeys(Nvertex))
+                G = Graph(list(OrderedDict.fromkeys(Nvertex)),lados)
+                #print "SUPER IMPORTANTE BIPARTICION: ",G.Biparticion()
+                camino =  G.caminoAumentador()
+                print "----------------->CAMINO: ",camino
+                Q = list(camino[0])
+                R = list(set(Q)&set(bipa[0]))
+                T = list(set(Q)&set(bipa[1]))
+
+                print "----------------->CONJUNTO Q: ",Q
+                print "----------------->CONJUNTO R: ",R
+                print "----------------->CONJUNTO T: ",T
+
+                #BUSCANDO EL MENOR VALOR PARA RESTAR A LOS VALORES DE LA MATRIZ QUE NO ESTAN EN R NI EN T
+                
+                matrizTemp = deepcopy(matriz)
+                puntXTemp = puntX[:]
+                puntYTemp = puntY[:]
+
+                cotx = 0
+                for i in R:
+                    num = bipa[0].index(i)
+                    matrizTemp.pop(num-cotx)
+                    puntXTemp.pop(num-cotx)
+                    cotx+=1
+
+                coty = 0
+                for j in T:
+                    num = bipa[1].index(j)
+                    print "num problema: ",num
+                    print "Matriz: ",matrizTemp
+                    for k in matrizTemp:
+                        k.pop(num-coty)
+                    puntYTemp.pop(num-coty)
+                    coty+=1
+                    
+                print "--->BIPARTICION: ",bipa
+                print "--->MATRIZ: ",matrizTemp
+                print "--->PUNTAJE CAMBIO X: ",puntXTemp
+                print "--->PUNTAJE CAMBIO Y: ",puntYTemp
+
+                menor = 0
+                for i in range(len(puntXTemp)):
+                    menor = menor + puntXTemp[i]
+                for i in range(len(puntYTemp)):
+                    menor = menor+puntYTemp[i]
+                    
+                for i in range(len(matrizTemp)):
+                    for j in range(len(matrizTemp[0])):
+                        suma = puntXTemp[i]+puntYTemp[j]-matrizTemp[i][j]
+                        print "SUMA DE LOS VALORES (%r+%r)-%r : %r" %(puntXTemp[i],puntYTemp[j],matrizTemp[i][j],suma)
+                        if(suma<menor):
+                            menor = suma
+                print "...............................................>VALOR MENOR A OPERAR",menor
+
+                #RESTANDO 'menor' A LOS VALORES CORRESPONDIENTES DEL CONJUNTO X Y SUMANDOLO A LOS CORRESPONDIENTES DE Y
+                
+                for i in range(len(puntX)):
+                    num = bipa[0][i]
+                    if(not(num in R)==True):
+                        puntX[i]-=menor
+                for i in range(len(puntY)):
+                    num = bipa[1][i]
+                    if(num in T):
+                        puntY[i]+=menor
+                print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+                print "BIPARTICION: ",bipa
+                print "MATRIZ: ",matriz
+                print "Emparejamiento: ",camino[1]
+                print "PUNTAJE X: ",puntX
+                print "PUNTAJE Y: ",puntY
+                return self.IAH(bipa,matriz,camino[1],puntX,puntY)
+
+                        
+                    
+                
+            
+            
+
+        def MatrizBiparticion(self,matriz):
+            inicio = (len(matriz)/2)
+            matrizN = []
+            for i in range(inicio):
+                temp = []
+                for j in range(inicio):
+                    temp.append(matriz[i][inicio+j])
+                matrizN.append(temp)
+            return matrizN
+            
+        
+        def algoritmoHungaro(self,matriz,bipa):
+            if((len(matriz[0])!=len(matriz)) or self.esBipartito==False):
+                return "Error"
+            else:
+                puntX = []
+                puntY = []
+                for i in self.MatrizBiparticion(matriz):
+                    puntX.append(max(i))
+                    puntY.append(0)
+                print "MATRIZ INICIAL: ",self.MatrizBiparticion(matriz)
+                print "PUNTOS INICIALES X: ",puntX
+                print "PUNTOS INICIALES Y: ",puntY
+                return self.IAH(bipa,self.MatrizBiparticion(matriz),[],puntX,puntY)
+                
         
         
         
