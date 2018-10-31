@@ -259,7 +259,7 @@ class Graph(object):
         if(len(S)==0 or final==True):
             print "S ESTA VACIO"
             cubrimiento = (set(T) | (set(grafo[0])-set(S)))
-            return [cubrimiento,emp]
+            return [list(OrderedDict.fromkeys(cubrimiento)),emp]
         else:
             for i in S:
                 print "--------->PRIMER VALOR DE S: ",i
@@ -271,6 +271,10 @@ class Graph(object):
                             Jsaturado = True
                     print "----------------->J ESTA SATURADO?: ",Jsaturado
                     if((not((i,j) in emp) or not((j,i) in emp)) and Jsaturado==False):
+                        for q in emp:
+                            if(i==q[0] or i==q[1]):
+                                emp.pop(emp.index(q))
+                                break
                         print "----------------->SE ENCONTRO CAMINO AUMENTADOR EN : (%r,%r)" %(i,j)
                         emp.append((i,j))
                         print "########################################################################################################"
@@ -285,7 +289,8 @@ class Graph(object):
                         return self.findCA(grafo,emp,S,[],False)
                     else:
                         print "Emparejamiento: ",emp
-                        T = T+[j]
+                        if(not(j in T)):
+                            T = T+[j]
                         w = 0
                         for p in emp:
                             print "Valor de p: ",p
@@ -301,7 +306,10 @@ class Graph(object):
                         print "----------------->Conj. S: ",S
                         print "----------------->Conj. T: ",T
                 #S.pop(S.index(i))
-            return self.findCA(grafo,emp,S,T,True)
+            if(i==S[len(S)-1]):
+                return self.findCA(grafo,emp,S,T,True)
+            else:
+                return self.findCA(grafo,emp,S,T,False)
         
                 
                         
@@ -403,7 +411,9 @@ class WeightedGraph(object):
                 #print "SUPER IMPORTANTE BIPARTICION: ",G.Biparticion()
                 camino =  G.caminoAumentador()
                 print "----------------->CAMINO: ",camino
-                Q = list(camino[0])
+                if(len(camino[0])==len(bipa[0])):
+                    return camino
+                Q = list(OrderedDict.fromkeys(camino[0]))
                 R = list(set(Q)&set(bipa[0]))
                 T = list(set(Q)&set(bipa[1]))
 
@@ -418,6 +428,7 @@ class WeightedGraph(object):
                 puntYTemp = puntY[:]
 
                 cotx = 0
+                R.sort()
                 for i in R:
                     num = bipa[0].index(i)
                     matrizTemp.pop(num-cotx)
@@ -425,6 +436,7 @@ class WeightedGraph(object):
                     cotx+=1
 
                 coty = 0
+                T.sort()
                 for j in T:
                     num = bipa[1].index(j)
                     print "num problema: ",num
