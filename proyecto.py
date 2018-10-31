@@ -326,200 +326,218 @@ class Graph(object):
 ########################################################################################################################################################
 class WeightedGraph(object):
 
-        def __init__(self,vertex,edges):
+    def __init__(self,vertex,edges):
+        v = True
+        for i in edges:
+            for j in i[0]:
+                if j in vertex:
+                    v = v and True
+                else :
+                    v = v and False
+        if v == False:
+            print("Error")
+        else:
             self.vertex = vertex
             self.edges = edges
 
+    def WeightMatrix(self):
+        matrix = []
+        #Creamos la matriz de pesos, inicialmente vacia.
+        for i in self.vertex:
+        #Iteramos sobre los nodos para sacar los pesos de los lados a los que es adyacente.
+            temp = []
+            #Esta lista contendrá esos pesos.
+            for j in self.vertex:
+                #Iteramos nuevamente sobre los nodos para saber a cules 'i' es vecino.
+                var = False
+                #Creamos una variable booleana para saber si existe el lado que une a 'i' con 'j'.
+                for k in self.edges:
+                #Iteramos sobre los lados para confirmar que la pareja 'i' con 'j' es un lado
+                    if((i,j) in k or (j,i) in k):
+                    #Comparamos para ver si existe el lado.
+                        temp.append(k[1])
+                        #Como existe el lado, nos metemos en su segundo elemento para acceder a su peso.
+                        var = var or True
+                        #Cambiamos el valor a var porque efectivamente el lado existe.
+                    else:
+                        var =var or False
+                        #Si el lado no existe se queda con el valor de falso.
+                if var == False:
+                    temp.append(0)
+                #Cuando termine de iterar sobre los lados si var queda valiendo falso quiere decir que el lado no
+                #existe, entonces agregamos el valor 0.
+            matrix.append(temp)
+        return matrix
+        
 
-        def WeightMatrix(self):
-            matrix = []
+    def vecindario(self,nodo):
+        vecinos = []
+        for i in self.edges:
+            if(nodo == i[0][0]):
+                vecinos.append(i[0][1])
+            elif(nodo == i[0][1]):
+                vecinos.append(i[0][0])
+        return vecinos
+
+
+    def esBipartito(self):
+        grafo = self.Biparticion()
+        if(len(set(grafo[0])& set(grafo[1]))!=0):
+            return False
+        else:
+            return True
+
+
+    def Biparticion(self):
+        x = []
+        y = []
+        for i in self.vertex:
+            if(not(i in x) and (i in y)):
+                x = x + self.vecindario(i)
+            elif(not(i in y) and (i in x)):
+                y = y + self.vecindario(i)
+            else:
+                x.append(i)
+                y = y + self.vecindario(i)
+        return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
+    
+    
+
+    def IAH(self,bipa,matriz,emp,puntX,puntY):
+        if(len(emp)==len(bipa[0])):
+            return emp
+        else:
+            lados = []
+            for j in range(len(puntX)):
+                for h in range(len(puntY)): 
+                    suma = puntX[j]+puntY[h]
+                    print "SUMA VITALMENTE IMPORTANTE: (%r+%r)= %r, (%r)" %(puntX[j],puntY[h],suma,matriz[j][h])
+                    if(suma==matriz[j][h]):
+                        print "Entrada"
+                        lados.append((self.vertex[j],self.vertex[h+len(bipa[0])]))
+
+            
+
+            print "SUPER IMPORTANTE LADOS: ",lados
+            Nvertex = []
             for i in self.vertex:
-                temp = []
-                for j in self.vertex:
-                    var = False
-                    for k in self.edges:
-                        if((i,j) in k or (j,i) in k):
-                            temp.append(k[1])
-                            var = var or True
-                        else:
-                            var =var or False
-                    if var == False:
-                        if(i==j):
-                            temp.append(0)
-                        else:
-                            temp.append(-1)
-                matrix.append(temp)
-            return matrix
-        
+                for j in lados:
+                    if(i in j):
+                        Nvertex.append(i)
+            print "--->Nuevos vertices: ",list(OrderedDict.fromkeys(Nvertex))
+            G = Graph(list(OrderedDict.fromkeys(Nvertex)),lados)
+            #print "SUPER IMPORTANTE BIPARTICION: ",G.Biparticion()
+            camino =  G.caminoAumentador()
+            print "----------------->CAMINO: ",camino
+            if(len(camino[0])==len(bipa[0])):
+                return camino
+            Q = list(OrderedDict.fromkeys(camino[0]))
+            R = list(set(Q)&set(bipa[0]))
+            T = list(set(Q)&set(bipa[1]))
 
-        def vecindario(self,nodo):
-            vecinos = []
-            for i in self.edges:
-                if(nodo == i[0][0]):
-                    vecinos.append(i[0][1])
-                elif(nodo == i[0][1]):
-                    vecinos.append(i[0][0])
-            return vecinos
+            print "----------------->CONJUNTO Q: ",Q
+            print "----------------->CONJUNTO R: ",R
+            print "----------------->CONJUNTO T: ",T
 
+            #BUSCANDO EL MENOR VALOR PARA RESTAR A LOS VALORES DE LA MATRIZ QUE NO ESTAN EN R NI EN T
+            
+            matrizTemp = deepcopy(matriz)
+            puntXTemp = puntX[:]
+            puntYTemp = puntY[:]
 
-        def esBipartito(self):
-            grafo = self.Biparticion()
-            if(len(set(grafo[0])& set(grafo[1]))!=0):
-                return False
-            else:
-                return True
+            cotx = 0
+            R.sort()
+            for i in R:
+                num = bipa[0].index(i)
+                matrizTemp.pop(num-cotx)
+                puntXTemp.pop(num-cotx)
+                cotx+=1
 
-
-        def Biparticion(self):
-            x = []
-            y = []
-            for i in self.vertex:
-                if(not(i in x) and (i in y)):
-                    x = x + self.vecindario(i)
-                elif(not(i in y) and (i in x)):
-                    y = y + self.vecindario(i)
-                else:
-                    x.append(i)
-                    y = y + self.vecindario(i)
-            return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
-        
-        
-
-        def IAH(self,bipa,matriz,emp,puntX,puntY):
-            if(len(emp)==len(bipa[0])):
-                return emp
-            else:
-                lados = []
-                for j in range(len(puntX)):
-                    for h in range(len(puntY)): 
-                        suma = puntX[j]+puntY[h]
-                        print "SUMA VITALMENTE IMPORTANTE: (%r+%r)= %r, (%r)" %(puntX[j],puntY[h],suma,matriz[j][h])
-                        if(suma==matriz[j][h]):
-                            print "Entrada"
-                            lados.append((self.vertex[j],self.vertex[h+len(bipa[0])]))
-
+            coty = 0
+            T.sort()
+            for j in T:
+                num = bipa[1].index(j)
+                print "num problema: ",num
+                print "Matriz: ",matrizTemp
+                for k in matrizTemp:
+                    k.pop(num-coty)
+                puntYTemp.pop(num-coty)
+                coty+=1
                 
+            print "--->BIPARTICION: ",bipa
+            print "--->MATRIZ: ",matrizTemp
+            print "--->PUNTAJE CAMBIO X: ",puntXTemp
+            print "--->PUNTAJE CAMBIO Y: ",puntYTemp
 
-                print "SUPER IMPORTANTE LADOS: ",lados
-                Nvertex = []
-                for i in self.vertex:
-                    for j in lados:
-                        if(i in j):
-                            Nvertex.append(i)
-                print "--->Nuevos vertices: ",list(OrderedDict.fromkeys(Nvertex))
-                G = Graph(list(OrderedDict.fromkeys(Nvertex)),lados)
-                #print "SUPER IMPORTANTE BIPARTICION: ",G.Biparticion()
-                camino =  G.caminoAumentador()
-                print "----------------->CAMINO: ",camino
-                if(len(camino[0])==len(bipa[0])):
-                    return camino
-                Q = list(OrderedDict.fromkeys(camino[0]))
-                R = list(set(Q)&set(bipa[0]))
-                T = list(set(Q)&set(bipa[1]))
-
-                print "----------------->CONJUNTO Q: ",Q
-                print "----------------->CONJUNTO R: ",R
-                print "----------------->CONJUNTO T: ",T
-
-                #BUSCANDO EL MENOR VALOR PARA RESTAR A LOS VALORES DE LA MATRIZ QUE NO ESTAN EN R NI EN T
+            menor = 0
+            for i in range(len(puntXTemp)):
+                menor = menor + puntXTemp[i]
+            for i in range(len(puntYTemp)):
+                menor = menor+puntYTemp[i]
                 
-                matrizTemp = deepcopy(matriz)
-                puntXTemp = puntX[:]
-                puntYTemp = puntY[:]
+            for i in range(len(matrizTemp)):
+                for j in range(len(matrizTemp[0])):
+                    suma = puntXTemp[i]+puntYTemp[j]-matrizTemp[i][j]
+                    print "SUMA DE LOS VALORES (%r+%r)-%r : %r" %(puntXTemp[i],puntYTemp[j],matrizTemp[i][j],suma)
+                    if(suma<menor):
+                        menor = suma
+            print "...............................................>VALOR MENOR A OPERAR",menor
 
-                cotx = 0
-                R.sort()
-                for i in R:
-                    num = bipa[0].index(i)
-                    matrizTemp.pop(num-cotx)
-                    puntXTemp.pop(num-cotx)
-                    cotx+=1
+            #RESTANDO 'menor' A LOS VALORES CORRESPONDIENTES DEL CONJUNTO X Y SUMANDOLO A LOS CORRESPONDIENTES DE Y
+            
+            for i in range(len(puntX)):
+                num = bipa[0][i]
+                if(not(num in R)==True):
+                    puntX[i]-=menor
+            for i in range(len(puntY)):
+                num = bipa[1][i]
+                if(num in T):
+                    puntY[i]+=menor
+            print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+            print "BIPARTICION: ",bipa
+            print "MATRIZ: ",matriz
+            print "Emparejamiento: ",camino[1]
+            print "PUNTAJE X: ",puntX
+            print "PUNTAJE Y: ",puntY
+            return self.IAH(bipa,matriz,camino[1],puntX,puntY)
 
-                coty = 0
-                T.sort()
-                for j in T:
-                    num = bipa[1].index(j)
-                    print "num problema: ",num
-                    print "Matriz: ",matrizTemp
-                    for k in matrizTemp:
-                        k.pop(num-coty)
-                    puntYTemp.pop(num-coty)
-                    coty+=1
-                    
-                print "--->BIPARTICION: ",bipa
-                print "--->MATRIZ: ",matrizTemp
-                print "--->PUNTAJE CAMBIO X: ",puntXTemp
-                print "--->PUNTAJE CAMBIO Y: ",puntYTemp
-
-                menor = 0
-                for i in range(len(puntXTemp)):
-                    menor = menor + puntXTemp[i]
-                for i in range(len(puntYTemp)):
-                    menor = menor+puntYTemp[i]
-                    
-                for i in range(len(matrizTemp)):
-                    for j in range(len(matrizTemp[0])):
-                        suma = puntXTemp[i]+puntYTemp[j]-matrizTemp[i][j]
-                        print "SUMA DE LOS VALORES (%r+%r)-%r : %r" %(puntXTemp[i],puntYTemp[j],matrizTemp[i][j],suma)
-                        if(suma<menor):
-                            menor = suma
-                print "...............................................>VALOR MENOR A OPERAR",menor
-
-                #RESTANDO 'menor' A LOS VALORES CORRESPONDIENTES DEL CONJUNTO X Y SUMANDOLO A LOS CORRESPONDIENTES DE Y
-                
-                for i in range(len(puntX)):
-                    num = bipa[0][i]
-                    if(not(num in R)==True):
-                        puntX[i]-=menor
-                for i in range(len(puntY)):
-                    num = bipa[1][i]
-                    if(num in T):
-                        puntY[i]+=menor
-                print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-                print "BIPARTICION: ",bipa
-                print "MATRIZ: ",matriz
-                print "Emparejamiento: ",camino[1]
-                print "PUNTAJE X: ",puntX
-                print "PUNTAJE Y: ",puntY
-                return self.IAH(bipa,matriz,camino[1],puntX,puntY)
-
-                        
                     
                 
             
-            
-
-        def MatrizBiparticion(self,matriz):
-            inicio = (len(matriz)/2)
-            matrizN = []
-            for i in range(inicio):
-                temp = []
-                for j in range(inicio):
-                    temp.append(matriz[i][inicio+j])
-                matrizN.append(temp)
-            return matrizN
-            
-        
-        def algoritmoHungaro(self,matriz,bipa):
-            if((len(matriz[0])!=len(matriz)) or self.esBipartito==False):
-                return "Error"
-            else:
-                puntX = []
-                puntY = []
-                for i in self.MatrizBiparticion(matriz):
-                    puntX.append(max(i))
-                    puntY.append(0)
-                print "MATRIZ INICIAL: ",self.MatrizBiparticion(matriz)
-                print "PUNTOS INICIALES X: ",puntX
-                print "PUNTOS INICIALES Y: ",puntY
-                return self.IAH(bipa,self.MatrizBiparticion(matriz),[],puntX,puntY)
-                
-        
-        
         
         
 
+    def MatrizBiparticion(self,matriz):
+        inicio = (len(matriz)/2)
+        matrizN = []
+        for i in range(inicio):
+            temp = []
+            for j in range(inicio):
+                temp.append(matriz[i][inicio+j])
+            matrizN.append(temp)
+        return matrizN
         
+    
+    def algoritmoHungaro(self,matriz,bipa):
+        if((len(matriz[0])!=len(matriz)) or self.esBipartito==False):
+            return "Error"
+        else:
+            puntX = []
+            puntY = []
+            for i in self.MatrizBiparticion(matriz):
+                puntX.append(max(i))
+                puntY.append(0)
+            print "MATRIZ INICIAL: ",self.MatrizBiparticion(matriz)
+            print "PUNTOS INICIALES X: ",puntX
+            print "PUNTOS INICIALES Y: ",puntY
+            return self.IAH(bipa,self.MatrizBiparticion(matriz),[],puntX,puntY)
+            
+    
+    
+    
+    
+
+    
 
 
 
