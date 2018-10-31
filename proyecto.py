@@ -221,6 +221,7 @@ class Graph(object):
 
     def vecindario(self,nodo):
         vecinos = []
+        #Busca en el conjunto de los lados las ocurrencias de "nodo"
         for i in self.edges:
             if(nodo == i[0]):
                 vecinos.append(i[1])
@@ -230,54 +231,62 @@ class Graph(object):
 
 
     def esBipartito(self):
+        #Verifica primero si el grafo es Arbol o no
         if(self.esArbol()==True):
             return True
+        #Si no es Arbol busca construir la biparticion 
         else:
             grafo = self.Biparticion()
+            #Si la interseccion entre los dos conjuntos de la biparticion no es vacio, entonces no es bipartito
             if(len(set(grafo[0])& set(grafo[1]))!=0):
                 return False
             else:
                 return True
 
     def Biparticion(self):
+        #listas X y Y que representan los dos conjuntos independientes
         x = []
         y = []
+        #Para cada nodo en el conjunto de los nodos lo agrega a X o Y
         for i in self.vertex:
+            #Si el nodo no esta en X pero si esta en Y, entonces agrega el vecindario del nodo a X
             if(not(i in x) and (i in y)):
                 x = x + self.vecindario(i)
+            #Si el nodo no esta en Y pero si esta en X, entonces agrega el vecindario del nodo a Y
             elif(not(i in y) and (i in x)):
                 y = y + self.vecindario(i)
+            #Agrega el nodo por defecto a X y su vecindario a Y
             else:
                 x.append(i)
                 y = y + self.vecindario(i)
+        #Retorna la biparticion
         return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
         
 
     def findCA(self,grafo,emp,S,T,final):
-        print "----------------->Conj. INICIAL S: ",S
-        print "----------------->Conj. INICIAL T: ",T
+        #Si el evaluador es "True" o la longitud de S es 0 termino y retorna una lista de listas con el cubrimiento minimo y el emparejamiento maximo 
         if(len(S)==0 or final==True):
-            print "S ESTA VACIO"
             cubrimiento = (set(T) | (set(grafo[0])-set(S)))
             return [list(OrderedDict.fromkeys(cubrimiento)),emp]
         else:
+            #Evalua cada nodo de S
             for i in S:
-                print "--------->PRIMER VALOR DE S: ",i
+                #Evalua el vecindario del nodo "i"
                 for j in self.vecindario(i):
-                    print "----------------->PRIMER VALOR DE J: ",j
+                    #Busca entre el emparejamiento si el nodo "j" esta saturado
                     Jsaturado = False
                     for k in emp:
                         if(j in k):
                             Jsaturado = True
-                    print "----------------->J ESTA SATURADO?: ",Jsaturado
+                    #Si el lado (i,j) o (j,i) no esta en el emparejamiento y el nodo "j" no esta saturado
                     if((not((i,j) in emp) or not((j,i) in emp)) and Jsaturado==False):
+                        #Si encuentra que el nodo "i" esta en el emparejamiento borra ese lado y agrega el encontrado (i,j) o (j,i)
                         for q in emp:
                             if(i==q[0] or i==q[1]):
                                 emp.pop(emp.index(q))
                                 break
-                        print "----------------->SE ENCONTRO CAMINO AUMENTADOR EN : (%r,%r)" %(i,j)
                         emp.append((i,j))
-                        print "########################################################################################################"
+                        #Actualiza el conjunto S sin el nodo "i"
                         S = []
                         for mp in grafo[0]:
                             esta = False
@@ -286,26 +295,26 @@ class Graph(object):
                                     esta = True
                             if(esta==False):
                                 S.append(mp)
+                        #Llama a la funcion "findCA" para continuar con el nuevo emparejamiento y conjunto S
                         return self.findCA(grafo,emp,S,[],False)
+                    #Si el nodo "j" esta saturado 
                     else:
-                        print "Emparejamiento: ",emp
+                        #Si el nodo "j" no esta en T lo agrega al conjunto T
                         if(not(j in T)):
                             T = T+[j]
                         w = 0
+                        #Busca el nodo "w" del conjunto X adyacente a "j" en el emprejamiento
                         for p in emp:
-                            print "Valor de p: ",p
                             if(j == p[0]):
                                 w = p[1]
                                 break
                             elif(j== p[1]):
                                 w = p[0]
                                 break
-                        print "Valor w: ",w
+                        #Si el nodo "w" no esta en S lo agrega al conjunto S 
                         if(not(w in S)):
                             S = S+[w]
-                        print "----------------->Conj. S: ",S
-                        print "----------------->Conj. T: ",T
-                #S.pop(S.index(i))
+            #Si no hay mas elementos del conjunto S para evaluar llama a la función con el evaluador True
             if(i==S[len(S)-1]):
                 return self.findCA(grafo,emp,S,T,True)
             else:
@@ -316,8 +325,10 @@ class Graph(object):
 
         
     def caminoAumentador(self):
+        #Si no es bipartito retorna Error
         if(self.esBipartito==False):
             return "Error"
+        #Crea la biparticion y llama a la funcion "findCA" con el grafo, el emparejamiento vacio, el conjunto S no saturado, El conjunto T vacio y un evaluador
         else:
             grafo = self.Biparticion()
             return self.findCA(grafo,[],grafo[0],[],False)
@@ -372,6 +383,7 @@ class WeightedGraph(object):
 
     def vecindario(self,nodo):
         vecinos = []
+        #Busca en el conjunto de los lados las ocurrencias de "nodo"
         for i in self.edges:
             if(nodo == i[0][0]):
                 vecinos.append(i[0][1])
@@ -382,6 +394,7 @@ class WeightedGraph(object):
 
     def esBipartito(self):
         grafo = self.Biparticion()
+        #Si la interseccion entre los dos conjuntos de la biparticion no es vacio, entonces no es bipartito
         if(len(set(grafo[0])& set(grafo[1]))!=0):
             return False
         else:
@@ -389,55 +402,60 @@ class WeightedGraph(object):
 
 
     def Biparticion(self):
+        #listas X y Y que representan los dos conjuntos independientes
         x = []
         y = []
+        #Para cada nodo en el conjunto de los nodos lo agrega a X o Y
         for i in self.vertex:
+            #Si el nodo no esta en X pero si esta en Y, entonces agrega el vecindario del nodo a X
             if(not(i in x) and (i in y)):
                 x = x + self.vecindario(i)
+            #Si el nodo no esta en Y pero si esta en X, entonces agrega el vecindario del nodo a Y
             elif(not(i in y) and (i in x)):
                 y = y + self.vecindario(i)
+            #Agrega el nodo por defecto a X y su vecindario a Y
             else:
                 x.append(i)
                 y = y + self.vecindario(i)
+        #Retorna la biparticion
         return [list(OrderedDict.fromkeys(x)),list(OrderedDict.fromkeys(y))]
     
     
 
     def IAH(self,bipa,matriz,emp,puntX,puntY):
+        #Si el emparejamiento es del mismo tamaño de alguno de los conjuntos de la biparticion termina
         if(len(emp)==len(bipa[0])):
             return emp
         else:
+            #Busca todos los lados cullos nodos cumplan que su suma de pesos sea igual al peso del lado 
             lados = []
             for j in range(len(puntX)):
                 for h in range(len(puntY)): 
                     suma = puntX[j]+puntY[h]
-                    print "SUMA VITALMENTE IMPORTANTE: (%r+%r)= %r, (%r)" %(puntX[j],puntY[h],suma,matriz[j][h])
                     if(suma==matriz[j][h]):
-                        print "Entrada"
+                        #Agrega el lado a la lista lados
                         lados.append((self.vertex[j],self.vertex[h+len(bipa[0])]))
 
             
-
-            print "SUPER IMPORTANTE LADOS: ",lados
+            #Busca los nodos para generar el grafo de aumento
             Nvertex = []
             for i in self.vertex:
                 for j in lados:
                     if(i in j):
                         Nvertex.append(i)
-            print "--->Nuevos vertices: ",list(OrderedDict.fromkeys(Nvertex))
+            #Crea el grafo de aumento con los nodos de "Nvertex" y los lados de "lados"
             G = Graph(list(OrderedDict.fromkeys(Nvertex)),lados)
-            #print "SUPER IMPORTANTE BIPARTICION: ",G.Biparticion()
+            #Llama a la funcion "caminoAumento" para encontrar el emparejamiento maximo y cubrimiento minimo
             camino =  G.caminoAumentador()
-            print "----------------->CAMINO: ",camino
+            #Si la longitud del cubrimiento es igual a la longitud del conjunto X o Y termina
             if(len(camino[0])==len(bipa[0])):
                 return camino
+            #Nodos del cubrimiento 
             Q = list(OrderedDict.fromkeys(camino[0]))
+            #Nodos del cumbrimeinto X & Q
             R = list(set(Q)&set(bipa[0]))
+            #Nodos del cumbrimiento Y & Q
             T = list(set(Q)&set(bipa[1]))
-
-            print "----------------->CONJUNTO Q: ",Q
-            print "----------------->CONJUNTO R: ",R
-            print "----------------->CONJUNTO T: ",T
 
             #BUSCANDO EL MENOR VALOR PARA RESTAR A LOS VALORES DE LA MATRIZ QUE NO ESTAN EN R NI EN T
             
@@ -508,6 +526,7 @@ class WeightedGraph(object):
         
 
     def MatrizBiparticion(self,matriz):
+        #Dada la matriz la reorganiza para evitar los pesos "-1"
         inicio = (len(matriz)/2)
         matrizN = []
         for i in range(inicio):
@@ -519,17 +538,21 @@ class WeightedGraph(object):
         
     
     def algoritmoHungaro(self,matriz,bipa):
+        #Verifica que el grafo sea bipartito completo
         if((len(matriz[0])!=len(matriz)) or self.esBipartito==False):
             return "Error"
         else:
+            #Crea dos listas que representan los "pesos" de cada nodo del grafo. 
             puntX = []
             puntY = []
+            #Asigna los "pesos". Para X el mayor valor de los pesos de los lados y para Y 0
             for i in self.MatrizBiparticion(matriz):
                 puntX.append(max(i))
                 puntY.append(0)
             print "MATRIZ INICIAL: ",self.MatrizBiparticion(matriz)
             print "PUNTOS INICIALES X: ",puntX
             print "PUNTOS INICIALES Y: ",puntY
+            #Llama a la funcion IAH con la biparticion, la matrtiz, el emparejamiento, los pesos de X y los de Y
             return self.IAH(bipa,self.MatrizBiparticion(matriz),[],puntX,puntY)
             
     
