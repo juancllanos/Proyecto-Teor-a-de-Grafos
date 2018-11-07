@@ -1,0 +1,62 @@
+    def Dijkstra(self,u,v):
+        if u == v:
+            return 0
+        s = [u]
+        d = {}
+        d[u] = 0
+        for i in self.N:
+            p = False
+            c=0
+            for j in self.E:
+                if (u,i) == j[0] or (i,u) == j[0]:
+                    c = j[1]
+                    p = p or True
+                else:
+                    p = p or False
+            if p == True:
+                d[i] = c
+            else:
+                d[i] = -1
+
+        cont = 1
+        while s != self.N:
+            #print "While #",cont
+            q = list(set(self.N)-set(s))
+            #print "q = %s" %(q)
+            m = ''
+            mini = 0
+            for j in self.E:
+                mini = mini + j[1]
+            for i in q:
+            #    print "BUSCANDO mini :",i,"--" ,d[i]
+                if d[i]<=mini and d[i] != -1:
+                    mini = d[i]
+                    m = i
+            #print "m = %s y mini = %i" %(m,mini) 
+            s.append(m)
+            #if s == self.N:
+            #    break
+            #print " S = ",s, "S con mini"
+            b = list(set(self.N)-set(s))
+            print "V(G) - S =",b
+            for i in b:
+                p = False
+                c=0
+                for j in self.E:
+                    if (m,i) == j[0] or (i,m) == j[0]:
+                        c = j[1]
+                        p = p or True
+                    else:
+                        p = p or False
+                if p == True and (d[i]>d[m]+c or d[i] == -1):
+                    d[i] = d[m]+c
+                elif p == True and (d[i]<=d[m]+c or d[i] == -1):
+                    d[i] = d[i]
+                else:
+                    if d[i] != -1:
+                        d[i] = d[i]
+                    else:
+                        d[i] = -1
+            cont = cont +1
+            
+        return d[v]
